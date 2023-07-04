@@ -365,4 +365,93 @@ int main(int argc, char* argv[])
 
 
 
+
+
+## 3.4 裸函数
+
+裸函数不需要使用堆栈 不能被调用
+
+```c
+#include "stdafx.h"
+
+
+// 裸函数
+void __declspec(naked) Plus(){
+     
+}
+
+
+int main(int argc, char* argv[])
+{
+	printf("Hello World!\n");
+	Plus();
+    
+	return 0;
+}
+```
+
+
+
+
+
+用汇编写出 两个数的和
+
+```c
+// day02.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+
+
+// 裸函数
+int __declspec(naked) Plus(int x,int y){
+    
+    __asm{	
+        // 开栈
+		push ebp			
+			mov ebp,esp			
+			sub esp,0x40	
+            //保护现场
+			push ebx			
+			push esi			
+			push edi			
+			lea edi,dword ptr ds:[ebp-0x40]			
+			mov eax,0xCCCCCCCC			
+			mov ecx,0x10			
+			rep stosd			
+			
+			mov eax,dword ptr ds:[ebp+8]			
+			add eax,dword ptr ds:[ebp+0xC]			
+			
+			pop edi			
+			pop esi			
+			pop ebx			
+			mov esp,ebp			
+			pop ebp			
+			
+			ret			
+	}				    
+}
+
+
+int main(int argc, char* argv[])
+{
+	printf("Hello World!\n");
+	Plus(1,2);
+    
+	return 0;
+}
+```
+
+
+
 # 4. 数据类型
+
+## 4.1 调用约定
+
+| 调用约定   | 参数压栈顺序                          | 平衡堆栈     |
+| ---------- | ------------------------------------- | ------------ |
+| __cdecl    | 从右至左入栈                          | 调用者清理栈 |
+| __stdcall  | 从右至左入栈                          | 自身清理堆栈 |
+| __fastcall | ECX/EDX 传送前两个 剩下的从右至左入栈 | 自身清理堆栈 |
+
